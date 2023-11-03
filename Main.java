@@ -42,7 +42,24 @@ public class Main {
                 case 1: ShowList(dishes);break;
                 case 2: Order(dishes, order);break;
                 case 3: CheckOut(order);break;
-                case 4: Settle(dishes,order,now_user);break;
+                case 4:
+                    try{
+                        Settle(dishes, order, now_user);
+                    }catch (illegalltemException e){
+                        System.out.println("Sorry,but you are short ￥"+e.GetAmount());
+                        e.printStackTrace();
+                        System.out.println("Enter “add” to add money to your account\nEnter “exit” to exit the program");
+                        String scmd;
+                        Scanner sin=new Scanner(System.in);
+                        scmd=sin.next();
+                        if(scmd.equals("add")){
+                            System.out.print("Add ￥");
+                            int add=sin.nextInt();
+                            now_user.SetMoney('+',add);
+                        }
+                        else if(scmd.equals("exit"))
+                            Exit();
+                    }break;
                 case 5: System.out.println("Your account balance:"+now_user.GetMoney()+"￥");break;
                 case 6: Exit();
                 default:System.out.println("Wrong order!");break;
@@ -106,7 +123,8 @@ public class Main {
     }
 
     //消费结算
-    public static void Settle(ArrayList<Dish>dishes,ArrayList<Dish> order,User nowu){
+    public static void Settle(ArrayList<Dish>dishes,ArrayList<Dish> order,User nowu) throws
+            illegalltemException{
         System.out.println("——————————————————————————————");
         int all_price=0;
         for(Dish d:order)
@@ -121,6 +139,8 @@ public class Main {
 
         if(ucmd.equals("yes")) {
             nowu.SetMoney('-',all_price);
+            if(nowu.GetMoney()<0)
+                throw new illegalltemException(nowu.GetMoney());
         }
         else if(ucmd.equals("change")) ChgeOrder(dishes,order);
         else if(ucmd.equals("no")) Exit();
@@ -192,7 +212,7 @@ public class Main {
     public static User SignUp(ArrayList<User> users){
         Scanner in=new Scanner(System.in);
         System.out.print("Enter your user name:");
-        String new_name=in.next();
+        String new_name=in.nextLine();
         System.out.print("Enter your password:");
         String new_password=in.next();
 
@@ -207,3 +227,4 @@ public class Main {
         exit(0);
     }
 }
+
