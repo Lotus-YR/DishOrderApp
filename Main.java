@@ -1,7 +1,6 @@
 import java.util.ArrayList;
 import java.lang.*;
 import java.util.Scanner;
-
 import static java.lang.System.exit;
 
 public class Main {
@@ -15,13 +14,13 @@ public class Main {
 
         int count=0;   //控制再输入密码的次数
         now_user=UserCheck(uname,upw,count);
-        System.out.println("———————————WELCOME————————————");
+        System.out.println("       *** WELCOME ***        ");
 
-        Dish d1=new Dish(1,"potato",7);
-        Dish d2=new Dish(2,"tomato and eggs",5);
-        Dish d3=new Dish(3,"beef noodle",11);
-        Dish d4=new Dish(4,"rice noodle",12);
-        Dish d5=new Dish(5,"hot pot",50);
+        Dish d1=new Dish(1,"Fried Potatoes",7);
+        Dish d2=new Dish(2,"Pancake",9);
+        Dish d3=new Dish(3,"Beef Noodles",11);
+        Dish d4=new Dish(4,"Fried Rice",12);
+        Dish d5=new Dish(5,"Fried Chicken",15);
 
         ArrayList<Dish>dishes = new ArrayList<>();
         dishes.add(d1);
@@ -34,6 +33,7 @@ public class Main {
         ShowCmd();
         int cmd=0;
         while(cmd!=6) {
+            System.out.println("——————————————————————————————");
             System.out.print("Enter the command:");
             Scanner in = new Scanner(System.in);
             cmd = in.nextInt();
@@ -45,9 +45,9 @@ public class Main {
                 case 4:
                     try{
                         Settle(dishes, order, now_user);
-                    }catch (illegalltemException e){
-                        System.out.println("Sorry,but you are short ￥"+e.GetAmount());
-                        e.printStackTrace();
+                    }catch (illegalltemException e1){
+                        System.out.println("Sorry,but you are short ￥"+e1.GetAmount());
+                        e1.printStackTrace();
                         System.out.println("Enter “add” to add money to your account\nEnter “exit” to exit the program");
                         String scmd;
                         Scanner sin=new Scanner(System.in);
@@ -59,8 +59,12 @@ public class Main {
                         }
                         else if(scmd.equals("exit"))
                             Exit();
-                    }break;
-                case 5: System.out.println("Your account balance:"+now_user.GetMoney()+"￥");break;
+                    }catch (illegalcmdException e){
+                        System.out.println("#“"+e.GetCmd()+"” is illegal");
+                        System.out.println("#Please enter again");
+                    }
+                    break;
+                case 5: System.out.println("Your account balance:￥"+now_user.GetMoney());break;
                 case 6: Exit();
                 default:System.out.println("Wrong order!");break;
             }
@@ -77,14 +81,13 @@ public class Main {
     }
     //显示菜单
     public static void ShowList(ArrayList<Dish> dishes) {
-        System.out.println("———————————— MENU ————————————");
+        System.out.println("———————————| MENU |———————————");
         for(Dish d:dishes) {
-            System.out.println(d.num+" "+d.name+" "+d.GetPrice()+"￥");
+            System.out.println(d.num+" "+d.name+" ￥"+d.GetPrice());
         }
     }
     //点菜
     public static void Order(ArrayList<Dish> dishes,ArrayList<Dish> order){
-        System.out.println("——————————————————————————————");
         System.out.print("Chooes dishes:");
         Scanner in=new Scanner(System.in);
         String s=in.nextLine();
@@ -115,45 +118,54 @@ public class Main {
     //显示已点的菜，显示账单
     public static void CheckOut(ArrayList<Dish> order){
         int n=0;
-        System.out.println("——————————————————————————————");
         System.out.println("Dishes that have been ordered:");
         for(Dish d:order) {
-            System.out.println(++n + " " + d.name + " " + d.GetPrice() + "￥");
+            System.out.println(++n + " " + d.name + " ￥" + d.GetPrice());
         }
+        if(order.isEmpty())
+            System.out.println("#You haven't ordered any dish yet");
     }
 
     //消费结算
     public static void Settle(ArrayList<Dish>dishes,ArrayList<Dish> order,User nowu) throws
-            illegalltemException{
-        System.out.println("——————————————————————————————");
+            illegalltemException, illegalcmdException {
         int all_price=0;
         for(Dish d:order)
             all_price +=d.GetPrice();
-        System.out.println("Total prices:"+all_price+"￥");
-        System.out.println("#Your account balance :"+nowu.GetMoney()+"￥");
+        if(all_price==0) System.out.println("#You haven't ordered any dish yet");
+        else {
+            System.out.println("Total prices:" + all_price + "￥");
+            System.out.println("#Your account balance :" + nowu.GetMoney() + "￥");
 
-        System.out.println("Enter “yes” to pay for it \nEnter “no” to cancel order\nEnter “change” to change order");
-        String ucmd;
-        Scanner in = new Scanner(System.in);
-        ucmd = in.nextLine();
+            System.out.println("Enter “yes” to pay for it \nEnter “no” to cancel order\nEnter “change” to change order");
+            String ucmd;
+            Scanner in = new Scanner(System.in);
+            ucmd = in.nextLine();
 
-        if(ucmd.equals("yes")) {
-            nowu.SetMoney('-',all_price);
-            if(nowu.GetMoney()<0)
-                throw new illegalltemException(nowu.GetMoney());
+            if (ucmd.equals("yes")) {
+                nowu.SetMoney('-', all_price);
+                if (nowu.GetMoney() < 0)
+                    throw new illegalltemException(nowu.GetMoney());
+                else {
+                    System.out.println("Order successfully\nYour dishes are preparing...");
+                    order.removeAll(order);
+                }
+            } else if (ucmd.equals("change")) ChgeOrder(dishes, order);
+            else if (ucmd.equals("no")) Exit();
+            else System.out.println("#Wrong order!");
         }
-        else if(ucmd.equals("change")) ChgeOrder(dishes,order);
-        else if(ucmd.equals("no")) Exit();
-        else System.out.println("#Wrong order!");
     }
 
-    public static void ChgeOrder(ArrayList<Dish>dishes,ArrayList<Dish>order){
+    public static void ChgeOrder(ArrayList<Dish>dishes,ArrayList<Dish>order)throws
+            illegalcmdException{
         System.out.println("Enter “+” to order more dishes\nEnter “-” to cancel some dishes");
         Scanner in=new Scanner(System.in);
         String p=in.nextLine();
         if(p.equals("+"))Order(dishes,order);
         else if(p.equals("-"))Cancel(dishes,order);
-        else System.out.println("#Wrong order!");
+        else{
+            throw new illegalcmdException(p);
+        }
     }
 
     public static User UserCheck(String uname,String upw,int count){
@@ -172,7 +184,7 @@ public class Main {
         int i=1;//判断用户是否存在以及密码是否正确
         for(User u:users){
             if(u.name.equals(uname) && u.GetPassword().equals(upw)) {
-                System.out.println("———————————SUCCEED————————————");
+                System.out.println("——————————*SUCCEED*———————————");
                 return u;
             }
             else if(u.name.equals(uname) && !u.GetPassword().equals(upw)&&count<3){
@@ -223,7 +235,7 @@ public class Main {
     }
 
     public static void Exit(){
-        System.out.println("———————————— EXIT ————————————");
+        System.out.println("———————————* EXIT *———————————");
         exit(0);
     }
 }
