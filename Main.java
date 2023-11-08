@@ -5,7 +5,19 @@ import static java.lang.System.exit;
 
 public class Main {
      public static void main(String[] args) {
-        User now_user=new User();
+        int user_num=4;
+        User u1=new User("admin","12345",5000);
+        User u2=new User("Jack","12345",5300);
+        User u3=new User("Mary","12345",6500);
+        User u4=new User("Marco","19890531",50000);
+
+        ArrayList<User>users=new ArrayList<>();
+        users.add(u1);
+        users.add(u2);
+        users.add(u3);
+        users.add(u4);
+
+        User now_user;
         Scanner in_user=new Scanner(System.in);
         System.out.print("Enter your user name:");
         String uname=in_user.next();
@@ -13,7 +25,7 @@ public class Main {
         String upw=in_user.next();
 
         int count=0;   //控制再输入密码的次数
-        now_user=UserCheck(uname,upw,count);
+        now_user=UserCheck(users,uname,upw,count,user_num);
         System.out.println("       *** WELCOME ***        ");
 
         Dish d1=new Dish(1,"Fried Potatoes",7);
@@ -30,55 +42,18 @@ public class Main {
         dishes.add(d5);
         ArrayList<Dish>order = new ArrayList<>();
 
-        ShowCmd();
-        int cmd=0;
-        while(cmd!=6) {
-            System.out.println("——————————————————————————————");
-            System.out.print("Enter the command:");
-            Scanner in = new Scanner(System.in);
-            cmd = in.nextInt();
-
-            switch (cmd) {
-                case 1: ShowList(dishes);break;
-                case 2: Order(dishes, order);break;
-                case 3: CheckOut(order);break;
-                case 4:
-                    try{
-                        Settle(dishes, order, now_user);
-                    }catch (illegalltemException e1){
-                        System.out.println("Sorry,but you are short ￥"+e1.GetAmount());
-                        e1.printStackTrace();
-                        System.out.println("Enter “add” to add money to your account\nEnter “exit” to exit the program");
-                        String scmd;
-                        Scanner sin=new Scanner(System.in);
-                        scmd=sin.next();
-                        if(scmd.equals("add")){
-                            System.out.print("Add ￥");
-                            int add=sin.nextInt();
-                            now_user.SetMoney('+',add);
-                        }
-                        else if(scmd.equals("exit"))
-                            Exit();
-                    }catch (illegalcmdException e){
-                        System.out.println("#“"+e.GetCmd()+"” is illegal");
-                        System.out.println("#Please enter again");
-                    }
-                    break;
-                case 5: System.out.println("Your account balance:￥"+now_user.GetMoney());break;
-                case 6: Exit();
-                default:System.out.println("Wrong order!");break;
-            }
+        if(now_user.name.equals("admin")){
+            Admin ad=new Admin(now_user.name, now_user.GetPassword(), now_user.GetMoney());
+            ad.ShowCmd();
+            ad.ChooseCmd(dishes,order,now_user,ad,users);
+        }
+        else{
+            now_user.ShowCmd();
+            now_user.ChooseCmd(dishes,order,now_user,null,users);
         }
     }
-    public static void ShowCmd(){
-        System.out.println("Command\t\tContent");
-        System.out.println("1\t\t\tShow the menu");
-        System.out.println("2\t\t\tOrder the dishes");
-        System.out.println("3\t\t\tCheak your dishes");
-        System.out.println("4\t\t\tSettlement");
-        System.out.println("5\t\t\tCheck account balance");
-        System.out.println("6\t\t\tExit");
-    }
+
+//程序内部 用户、管理员的公共功能
     //显示菜单
     public static void ShowList(ArrayList<Dish> dishes) {
         System.out.println("———————————| MENU |———————————");
@@ -100,7 +75,7 @@ public class Main {
             }
         }
     }
-    //
+    //取消已点的菜
     public static void Cancel(ArrayList<Dish>dishes,ArrayList<Dish>order){
         CheckOut(order);
         System.out.println("Dishes that you want to cancel:");
@@ -125,11 +100,10 @@ public class Main {
         if(order.isEmpty())
             System.out.println("#You haven't ordered any dish yet");
     }
-
     //消费结算
     public static void Settle(ArrayList<Dish>dishes,ArrayList<Dish> order,User nowu) throws
             illegalltemException, illegalcmdException {
-        int all_price=0;
+        double all_price=0;
         for(Dish d:order)
             all_price +=d.GetPrice();
         if(all_price==0) System.out.println("#You haven't ordered any dish yet");
@@ -155,7 +129,7 @@ public class Main {
             else System.out.println("#Wrong order!");
         }
     }
-
+    //更改菜单
     public static void ChgeOrder(ArrayList<Dish>dishes,ArrayList<Dish>order)throws
             illegalcmdException{
         System.out.println("Enter “+” to order more dishes\nEnter “-” to cancel some dishes");
@@ -167,20 +141,16 @@ public class Main {
             throw new illegalcmdException(p);
         }
     }
+    //退出程序
+    public static void Exit(){
+        System.out.println("———————————* EXIT *———————————");
+        exit(0);
+    }
 
-    public static User UserCheck(String uname,String upw,int count){
-        int user_num=4;
-        User u1=new User("admin","12345",5000);
-        User u2=new User("Jack","12345",5300);
-        User u3=new User("Mary","12345",6500);
-        User u4=new User("Marco","19890531",50000);
 
-        ArrayList<User>users=new ArrayList<>();
-        users.add(u1);
-        users.add(u2);
-        users.add(u3);
-        users.add(u4);
-
+//登录、注册
+    //确认用户是否存在
+    public static User UserCheck(ArrayList<User>users,String uname,String upw,int count,int user_num){
         int i=1;//判断用户是否存在以及密码是否正确
         for(User u:users){
             if(u.name.equals(uname) && u.GetPassword().equals(upw)) {
@@ -196,7 +166,7 @@ public class Main {
                 System.out.print("Enter your password:");
                 upw=in_user.next();
 
-                return UserCheck(uname,upw,count);
+                return UserCheck(users,uname,upw,count,user_num);
 
             }
             else if(count==3){
@@ -220,7 +190,7 @@ public class Main {
         }
         return null;
     }
-
+    //注册账户
     public static User SignUp(ArrayList<User> users){
         Scanner in=new Scanner(System.in);
         System.out.print("Enter your user name:");
@@ -234,9 +204,6 @@ public class Main {
         return newu;
     }
 
-    public static void Exit(){
-        System.out.println("———————————* EXIT *———————————");
-        exit(0);
-    }
+
 }
 
