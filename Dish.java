@@ -3,12 +3,17 @@ public class Dish {
     String name;
     private double price;
     int count;
-    public Dish(int n, String nm, double p) {
-        num = n;
+    public Dish(int n,String nm, double p) {
+        num=n;
         name = nm;
         price = p;
     }
     double GetPrice(){
         return price;
     }
+
+    void ChgPrice(double nprice){
+        price=nprice;
+    }
 }
+
